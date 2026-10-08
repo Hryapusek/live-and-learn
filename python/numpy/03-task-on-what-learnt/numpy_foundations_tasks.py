@@ -40,7 +40,8 @@ def stepped_view(a: np.ndarray) -> np.ndarray:
     Requirement:
         The result must share memory with `a`.
     """
-    raise NotImplementedError
+    
+    return a[1::2, ::2]
 
 
 # ---------------------------------------------------------------------------
@@ -62,7 +63,7 @@ def reverse_columns_view(a: np.ndarray) -> np.ndarray:
     Requirement:
         No copy. At least one stride should become negative.
     """
-    raise NotImplementedError
+    return a[::, ::-1]
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +80,9 @@ def reordered_rows_copy(a: np.ndarray) -> np.ndarray:
         Use advanced indexing.
         The result must NOT share memory with `a`.
     """
-    raise NotImplementedError
+    assert a.ndim == 2
+    
+    return a[[3, 0, 2]]
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +120,7 @@ def add_every_pair(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     Hint:
         Think about where a size-1 axis must be inserted.
     """
-    raise NotImplementedError
+    return x[::, None] + y[None, ::]
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +151,15 @@ def calibrate(samples: np.ndarray,
     You will need to make `time_offset` broadcast along
     the device and channel dimensions.
     """
-    raise NotImplementedError
+    # I need samples[d, t, 0] multiply with channel_gain[0]
+    # Same with 1 2 and so on
+    # If i do channel_gain[None, ::] it means that i create a 2d array with row channel_gain
+    # If i do channel_gain[::, None] it means that i create a 2d array with column channel_gain
+    # After the (i forgot the word) we will get the [[ch[0], ch[0], ch[0]]] even though its not what we might expect. We extrapolate(I FORGOT THE WORD) to the wrong axis.
+    # Means i should use the first version
+    gained = samples * channel_gain[None, None, :]
+    return gained + time_offset[None, :, None] # Basically i broadcast(now i remember the word) time along the column
+    # Swear to god i done this task in one attempt. I think its because i really try hard to think before just guess the correct position of the :, dont want to defeat the whole purpose of learning
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +189,9 @@ def normalize_rows(a: np.ndarray) -> np.ndarray:
 
     Assume every row has a non-zero sum.
     """
-    raise NotImplementedError
+    print("Sum is\n", a.sum(axis=1))
+    # return a / a.sum(axis=1)[:, None] # Thats one way to do it
+    return a / a.sum(axis=1, keepdims=True) # And thats what keepdims is designed for
 
 
 # ---------------------------------------------------------------------------
@@ -217,7 +230,7 @@ def select_rectangle(a: np.ndarray,
 
     means something different.
     """
-    raise NotImplementedError
+    return a[np.ix_(rows, columns)]
 
 
 # ===========================================================================
@@ -383,10 +396,13 @@ def main() -> None:
 
         try:
             test()
-        except Exception:
+        except Exception as e:
             failures += 1
             print(f"[FAIL] {name}")
-            traceback.print_exc()
+            if isinstance(e, NotImplementedError):
+                print("=> Just not implemented yet")
+            else:
+                traceback.print_exc()
             print()
         else:
             print(f"[ OK ] {name}")
