@@ -209,7 +209,10 @@ def valid_count_per_device(samples: np.ndarray, low: float, high: float) -> np.n
 
     Requirement: use np.count_nonzero and reduce time+channel axes together.
     """
-    raise NotImplementedError
+    mask = np.isfinite(samples)
+    np.logical_and(mask, samples >= low, out=mask)
+    np.logical_and(mask, samples < high, out=mask)
+    return np.count_nonzero(mask, axis=(1, 2))
 
 
 # TASK 12
@@ -223,7 +226,16 @@ def safe_divide(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
         np.where(denominator != 0, numerator / denominator, 0)
     still perform problematic division before selection?
     """
-    raise NotImplementedError
+    # The answer because its not a lazy calculation or calculation on request, all array calculated at the point of calling the np.where. That means that we still can enounter zero division even with np.where
+    
+    # mask = np.ma.make_mask(denominator)
+    # numerator = np.where(mask, numerator, 0)
+    # denominator = np.where(mask, denominator, 1) # Too much allocations
+    # return numerator / denominator
+    
+    result = np.zeros(numerator.shape, dtype=np.float64)
+    
+    np.divide(numerator, denominator, where=(denominator != 0))
 
 
 # ===========================================================================
