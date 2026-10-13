@@ -318,6 +318,13 @@ def stable_softmax(logits: np.ndarray) -> np.ndarray:
     Explain to yourself: why does subtracting the row maximum not change
     the softmax probabilities?
     """
+    # Some simple math equalities using log proves this fact
+
+    maxs = np.max(logits, axis=-1, keepdims=True)
+    exponents = np.exp(logits - maxs)
+    sums = np.add.reduce(exponents, axis=-1, keepdims=True)
+    return exponents / sums
+    
     raise NotImplementedError
 
 
