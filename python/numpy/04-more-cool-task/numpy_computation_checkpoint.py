@@ -233,7 +233,7 @@ def safe_divide(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
     # denominator = np.where(mask, denominator, 1) # Too much allocations
     # return numerator / denominator
     
-    result = np.zeros(numerator.shape, dtype=np.float64)
+    result = np.zeros(np.broadcast_shapes(numerator.shape, denominator.shape), dtype=np.float64)
     
     np.divide(numerator, denominator, where=(denominator != 0), out=result)
     return result
@@ -344,7 +344,40 @@ def pairwise_distances(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
     Determine the difference shape and which axis represents coordinates.
     """
-    raise NotImplementedError
+    """
+        [
+            [0.,0.], 
+            [3.,4.]
+        ] -> shape after newaxis is 2 1 2
+
+        [
+            [0.,0.],
+            [0.,4.],
+            [3.,0.]
+        ] -> shape after newaxis is 1 3 2
+
+        [
+            [
+                [0.,0.]
+            ], 
+            [
+                [3.,4.]
+            ]
+        ]
+
+        [
+            [
+                [0.,0.],
+                [0.,4.],
+                [3.,0.]
+            ]
+        ]
+    
+    I did remember that broadcast is basically each possible combination as you explained it in theory block
+    But its still was a pretty hard task for me. I first got an array with 3, 2 shape instead of 2, 3
+    Feels so counterintuitive to be honest
+    """
+    return np.sqrt(np.add.reduce(np.pow(a[:, np.newaxis, :] - b[np.newaxis, :, :], 2), axis=-1))
 
 
 # ===========================================================================
