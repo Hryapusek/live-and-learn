@@ -235,7 +235,8 @@ def safe_divide(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
     
     result = np.zeros(numerator.shape, dtype=np.float64)
     
-    np.divide(numerator, denominator, where=(denominator != 0))
+    np.divide(numerator, denominator, where=(denominator != 0), out=result)
+    return result
 
 
 # ===========================================================================
@@ -252,7 +253,17 @@ def weighted_channel_mean(spectra: np.ndarray, weights: np.ndarray) -> np.ndarra
 
     No tile/repeat, no loops.
     """
-    raise NotImplementedError
+    # I would like to know what weighted calculation are used for
+    # output: (mesurement, )
+    """
+    [
+        [0, 1, 2, 3],
+        [0, 1, 2, 3]
+    ]
+    """
+    total_weight = weights.sum()
+    return np.add.reduce(spectra * weights[np.newaxis, :], axis=1) / total_weight
+    # damn i really wrote it by myself, jeez
 
 
 # TASK 14
@@ -267,7 +278,28 @@ def standardize_channels(samples: np.ndarray) -> np.ndarray:
     Assume non-zero std for every channel.
     Requirement: tuple axes + keepdims=True.
     """
-    raise NotImplementedError
+
+    """
+    • Mean: 40 ÷ 8 = 5
+    • Differences from mean: (-3, -1, -1, -1, 0, 0, 2, 4)
+    • Squared differences: (9, 1, 1, 1, 0, 0, 4, 16)
+    • Sum of squares: 9 + 1 + 1 + 1 + 0 + 0 + 4 + 16 = 32
+    • Sample variance (n - 1 = 7): 32 ÷ 7 ≈ 4.57
+    • Sample standard deviation: \(\sqrt{4.57} \approx 2.14\)
+    """
+    # print(f"input: {samples}")
+    mean = samples.mean(axis=(0, 1)) # (channels, )
+    # print(f"mean: {mean}")
+    diff_from_mean = samples - mean[np.newaxis, np.newaxis, :]
+    # print(f"diff_from_mean: {diff_from_mean}")
+    squared = np.pow((diff_from_mean), 2)
+    # print(f"squared: {squared}")
+    reduced = np.add.reduce(squared, axis=(0, 1), keepdims=True)
+    # print(f"reduced: {reduced}")
+    # print(f"samples.shape[-1] - 1: {samples.shape[0] * samples.shape[1]}")
+    std = np.sqrt(reduced / (samples.shape[0] * samples.shape[1]))
+    # print(f"std: {std}")
+    return (samples - mean[np.newaxis, np.newaxis, :]) / std
 
 
 # TASK 15
