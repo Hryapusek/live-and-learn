@@ -397,7 +397,9 @@ def optional_piecewise_calibration(x: np.ndarray) -> np.ndarray:
     Read: np.select.
     Compare mentally with nested np.where calls.
     """
-    raise NotImplementedError
+    condlist = [x < 0, (x >= 0) & (x < 100), x >= 100]
+    choicelist = [-1, x*0.1, 10 + np.sqrt(x - 100)]
+    return np.select(condlist, choicelist)
 
 
 # OPTIONAL 2
@@ -418,7 +420,8 @@ def optional_moving_average(x: np.ndarray, window: int) -> np.ndarray:
     - whether windows physically copy data
     - how overlapping logical windows can share storage
     """
-    raise NotImplementedError
+    # I really want to answer your questions. But i feel like i dont really have too much strenght. Could you please give me short answers? But i will try my guess. Since the name is "view", so its definitely view. You are asking how overlapping logical windows can share storage. All that is needed is start point, window size and then we can split the whole array to the window slices thats all. I dont think its too much of an issue really
+    return np.lib.stride_tricks.sliding_window_view(x, window).mean(axis=-1)
 
 
 # ===========================================================================
