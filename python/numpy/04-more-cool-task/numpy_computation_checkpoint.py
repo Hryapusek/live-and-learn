@@ -289,7 +289,7 @@ def standardize_channels(samples: np.ndarray) -> np.ndarray:
     • Sample standard deviation: \(\sqrt{4.57} \approx 2.14\)
     """
     # print(f"input: {samples}")
-    mean = samples.mean(axis=(0, 1)) # (channels, )
+    mean = samples.mean(axis=(0, 1), keepdims=True) # (channels, )
     # print(f"mean: {mean}")
     diff_from_mean = samples - mean
     # print(f"diff_from_mean: {diff_from_mean}")
@@ -300,7 +300,7 @@ def standardize_channels(samples: np.ndarray) -> np.ndarray:
     # print(f"samples.shape[-1] - 1: {samples.shape[0] * samples.shape[1]}")
     std = np.sqrt(reduced / (samples.shape[0] * samples.shape[1]))
     # print(f"std: {std}")
-    return (samples - mean[np.newaxis, np.newaxis, :]) / std
+    return (samples - mean) / std
 
 
 # TASK 15
