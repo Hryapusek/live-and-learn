@@ -93,7 +93,7 @@ def nonnegative_sqrt(x: np.ndarray) -> np.ndarray:
     if you did not initialize/provide output storage?
     """
     # The danger is that numbers that are less than 0 are just ignored completely and that means that output storage might contain garbage depending on how it was initalized
-    result = np.zeros(x.size, dtype=x.dtype)
+    result = np.zeros_like(x, dtype=np.float64)
     np.sqrt(x, where=(x>=0), out=result)
     return result
 
@@ -176,10 +176,11 @@ def select_range(a: np.ndarray, low: float, high: float) -> np.ndarray:
     Also know whether the returned result is a view or copy.
     """
     # That was really tough to be honest
-    mask = np.full(a.shape, True)
-    np.logical_and(mask, a >= low, out=mask)
-    np.logical_and(mask, a < high, out=mask)
-    return a[mask]
+    # mask = np.full(a.shape, True)
+    # np.logical_and(mask, a >= low, out=mask)
+    # np.logical_and(mask, a < high, out=mask)
+    # No need for all this complication - just use binary operators(that are not actually binary in that context)
+    return a[(a >= low) & (a < high)]
 
 
 # TASK 10
@@ -192,10 +193,10 @@ def sanitize_readings(a: np.ndarray, low: float, high: float) -> np.ndarray:
     Requirement: use np.where.
     Read: np.isfinite, np.where.
     """
-    result = np.array(a.shape, dtype=np.float64)
+    # result = np.array(a.shape, dtype=np.float64) # This is error line. This expression does not create an array with shape as a. Use np.empty(a.shape) or zeros and ones instead.
     mask = np.isfinite(a)
     np.logical_and(mask, a >= low, out=mask)
-    np.logical_and(mask, a < high, out=mask)
+    np.logical_and(mask, a <= high, out=mask)
     return np.where(mask, a, np.nan)
 
 
@@ -211,7 +212,7 @@ def valid_count_per_device(samples: np.ndarray, low: float, high: float) -> np.n
     """
     mask = np.isfinite(samples)
     np.logical_and(mask, samples >= low, out=mask)
-    np.logical_and(mask, samples < high, out=mask)
+    np.logical_and(mask, samples <= high, out=mask)
     return np.count_nonzero(mask, axis=(1, 2))
 
 
@@ -262,7 +263,7 @@ def weighted_channel_mean(spectra: np.ndarray, weights: np.ndarray) -> np.ndarra
     ]
     """
     total_weight = weights.sum()
-    return np.add.reduce(spectra * weights[np.newaxis, :], axis=1) / total_weight
+    return np.add.reduce(spectra * weights, axis=1) / total_weight
     # damn i really wrote it by myself, jeez
 
 
@@ -290,7 +291,7 @@ def standardize_channels(samples: np.ndarray) -> np.ndarray:
     # print(f"input: {samples}")
     mean = samples.mean(axis=(0, 1)) # (channels, )
     # print(f"mean: {mean}")
-    diff_from_mean = samples - mean[np.newaxis, np.newaxis, :]
+    diff_from_mean = samples - mean
     # print(f"diff_from_mean: {diff_from_mean}")
     squared = np.pow((diff_from_mean), 2)
     # print(f"squared: {squared}")
